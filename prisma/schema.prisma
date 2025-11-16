@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 // prisma/schema.prisma
@@ -14,6 +13,7 @@ model User {
   id        Int      @id @default(autoincrement())
   username  String
   email     String   @unique
+  member    Member?
   createdAt DateTime @default(now())
 }
 
@@ -23,8 +23,7 @@ model Member {
   userId   Int    @unique
   family   Family @relation(fields: [familyId], references: [id])
   familyId Int
-
-  role Role
+  role     Role
 }
 
 model Family {
