@@ -9,3 +9,32 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Member {
+  id       Int    @id @default(autoincrement())
+  user     User   @relation(fields: [userId], references: [id])
+  userId   Int    @unique
+  family   Family @relation(fields: [familyId], references: [id])
+  familyId Int
+
+  role Role
+}
+
+model Family {
+  id        Int      @id @default(autoincrement())
+  membres   Member[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  CHEF
+  MEMBER
+}
