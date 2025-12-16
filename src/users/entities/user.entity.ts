@@ -27,7 +27,8 @@ export class User {
   strictInfo() {
     return {
       id: this.id,
-      email: this.email
+      email: this.email,
+      role: this.role,
     }
   }
 
