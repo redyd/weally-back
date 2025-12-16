@@ -9,7 +9,7 @@ interface JwtPayload {
 }
 
 /**
- * Cette classe permet de décoder le token d'accès et de vérifier sa validité.
+ * Cette classe permet de décoder le token de refresh et de vérifier sa validité.
  * Si la date a expiré ou que c'est un mauvais type de token, la requête sera refusée.
  */
 @Injectable()
