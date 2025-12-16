@@ -24,12 +24,19 @@ export class User {
     this.familyId = data.member?.familyId ?? null;
   }
 
-  strictInfo() {
+  basicInfo() {
     return {
       id: this.id,
       email: this.email,
       role: this.role,
     }
+  }
+
+  strictInfo() {
+    return {
+      id: this.id,
+      email: this.email,
+    };
   }
 
   hasFamily(): boolean {
