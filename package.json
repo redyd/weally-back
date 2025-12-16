@@ -6,29 +6,29 @@
   "type": "commonjs",
   "private": true,
   "license": "UNLICENSED",
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
   "scripts": {
     "postinstall": "prisma generate",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-
     "start": "dotenv -e .env.test -- nest start",
     "start:dev": "dotenv -e .env.test -- nest start --watch",
     "start:debug": "dotenv -e .env.test -- nest start --debug --watch",
     "start:prod": "node dist/main",
-
     "prisma:generate": "prisma generate",
     "prisma:migrate:test": "dotenv -e .env.test -- prisma migrate dev",
     "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
     "prisma:reset:test": "dotenv -e .env.test -- prisma migrate reset --force",
     "prisma:studio": "prisma studio",
-
     "test": "dotenv -e .env.test -- jest",
     "test:watch": "dotenv -e .env.test -- jest --watch",
     "test:cov": "dotenv -e .env.test -- jest --coverage",
     "test:debug": "dotenv -e .env.test -- node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "dotenv -e .env.test -- jest --config ./test/jest-e2e.json --runInBand",
-
     "docker:prod": "docker-compose up -d",
     "docker:prod:build": "docker-compose up --build -d",
     "docker:prod:down": "docker-compose down",
@@ -37,12 +37,17 @@
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/mapped-types": "*",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.19.0",
+    "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dotenv": "^17.2.3",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -52,9 +57,11 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
+    "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
     "dotenv-cli": "^7.4.2",
     "eslint": "^9.18.0",

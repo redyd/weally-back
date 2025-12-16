@@ -1,31 +1,86 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 import { DatabaseService } from '../database/database.service';
+import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async create(createUserDto: CreateUserDto) {
-    return this.databaseService.user.create({
-      data: createUserDto
+  /**
+   * Permet de valider un utilisateur avec son mot de passe.
+   *
+   * @param email
+   * @param password
+   * @return les données de l'utilisateur si le mot de passe correspond, sinon null
+   */
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const userPlain = await this.databaseService.user.findUnique({
+      where: { email },
+      include: {
+        member: true,
+      },
     });
+
+    if (!userPlain) return null;
+
+    const isPasswordValid = await bcrypt.compare(password, userPlain.password);
+    if (!isPasswordValid) return null;
+
+    return new User(userPlain);
   }
 
-  async findAll() {
-    return this.databaseService.user.findMany();
+  /**
+   * Cette fonction permet de créer un nouvel utilisateur.
+   *
+   * @return l'utilisateur créé
+   */
+  async create(createUser: CreateUserDto): Promise<User> {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(createUser.password, saltRounds);
+
+    const userPlain = await this.databaseService.user.create({
+      data: {
+        ...createUser,
+        password: hashedPassword,
+      },
+    });
+
+    return new User(userPlain);
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} user`;
+  /**
+   * Permet de trouver tous les users
+   *
+   * @return un tableau de users.
+   */
+  async findAll(): Promise<User[]> {
+    const usersPlain = await this.databaseService.user.findMany();
+
+    return usersPlain.map((userPlain) => new User(userPlain));
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  /**
+   * Permet de trouver un user sur base de son id.
+   *
+   * @param id
+   * @return l'utilisateur ou null si absent
+   */
+  async findOne(id: number): Promise<User | null> {
+    const userPlain = await this.databaseService.user.findUnique({
+      where: { id },
+    });
+    if (!userPlain) return null;
+    return new User(userPlain);
   }
 
+  /**
+   * Permet de supprimer un utilisateur.
+   *
+   * @param id
+   */
   async remove(id: number) {
-    return `This action removes a #${id} user`;
+    return this.databaseService.user.delete({ where: { id } });
   }
 }
