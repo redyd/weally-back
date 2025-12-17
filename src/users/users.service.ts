@@ -15,7 +15,10 @@ export class UsersService {
    * @param password
    * @return les données de l'utilisateur si le mot de passe correspond, sinon null
    */
-  async validateUser(email: string, password: string): Promise<UserClient | null> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<UserClient | null> {
     const userPlain = await this.databaseService.user.findUnique({
       where: { email },
       include: {
@@ -80,7 +83,7 @@ export class UsersService {
    *
    * @param id
    */
-  async remove(id: number) : Promise<UserClient | null> {
+  async remove(id: number): Promise<UserClient | null> {
     const plainUser = await this.databaseService.user.delete({ where: { id } });
     if (!plainUser) return null;
     const { password, ...safeUser } = plainUser;
