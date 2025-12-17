@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
-import { User } from '../users/entities/user.entity';
+import { UserClient } from '../users/entities/user.entity';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -24,7 +24,7 @@ describe('AuthService', () => {
       email: 'test@example.com',
       role: "MEMBER",
     }),
-  } as unknown as User;
+  } as unknown as UserClient;
 
   const mockUsersService = {
     validateUser: jest.fn(),

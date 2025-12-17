@@ -1,12 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/entities/user.entity';
+import { UserClient } from '../users/entities/user.entity';
 import { RefreshTokenDto } from './dto/refresh-token-dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 export interface LoginResponse {
   tokens: TokenResponse;
-  user: User;
+  user: UserClient;
 }
 
 interface TokenResponse {
@@ -27,7 +28,7 @@ export class AuthService {
    * @param email
    * @param password
    */
-  async validateUser(email: string, password: string): Promise<User> {
+  async validateUser(email: string, password: string): Promise<UserClient> {
     const user = await this.usersService.validateUser(email, password);
     if (!user) throw new UnauthorizedException('Invalid credentials');
     return user;
@@ -45,13 +46,17 @@ export class AuthService {
     return this.createTokens(user);
   }
 
+  async register(createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
   /**
    * Permet de rafraichir ses tokens.
    *
    * @param refreshToken le refresh token de l'utilisateur
    */
   async refresh(refreshToken: RefreshTokenDto): Promise<LoginResponse> {
-    let user: User | null;
+    let user: UserClient | null;
 
     try {
       const userInfo = this.jwtService.verify(refreshToken.refresh_token, {
@@ -68,7 +73,7 @@ export class AuthService {
     return this.createTokens(user);
   }
 
-  createTokens(user: User) {
+  createTokens(user: UserClient) {
     const payloadAccess = { ...user.basicInfo(), type: 'access_token' };
     const payloadRefresh = { ...user.strictInfo(), type: 'refresh_token' };
 

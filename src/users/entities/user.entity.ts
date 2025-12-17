@@ -1,6 +1,6 @@
 import { Role } from './UserTypes';
 
-export class User {
+export class UserClient {
   private readonly id: number;
   private readonly email: string;
   private readonly username: string;

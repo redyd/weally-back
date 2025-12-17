@@ -1,8 +1,15 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService, LoginResponse } from './auth.service';
 import { LoginDto } from './dto/login-dto';
 import { RefreshTokenDto } from './dto/refresh-token-dto';
 import { JwtRefreshGuard } from './jwt/JwtRefreshGuard';
+import { NoAuthGuard } from './jwt/NoAuthGuard';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -35,9 +42,23 @@ export class AuthController {
    *
    * @returns Promise<LoginResponse> contenant les tokens et les informations de l'utilisateur
    */
+  @UseGuards(NoAuthGuard)
   @Post('login')
   login(@Body() user: LoginDto): Promise<LoginResponse> {
     return this.authService.login(user.email, user.password);
+  }
+
+  /**
+   * Permet à un utilisateur de s'inscrire.
+   * Ne nécessite aucune authentification.
+   *
+   * @param createUserDto ses informations basiques
+   * (email, nom d'utilisateur, mot de passe)
+   */
+  @UseGuards(NoAuthGuard)
+  @Post('register')
+  register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
   }
 
   /**

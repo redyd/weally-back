@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { DatabaseService } from '../database/database.service';
-import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UserClient } from './entities/user.entity';
+import { CreateUserDto } from '../auth/dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -15,7 +15,7 @@ export class UsersService {
    * @param password
    * @return les données de l'utilisateur si le mot de passe correspond, sinon null
    */
-  async validateUser(email: string, password: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<UserClient | null> {
     const userPlain = await this.databaseService.user.findUnique({
       where: { email },
       include: {
@@ -28,7 +28,7 @@ export class UsersService {
     const isPasswordValid = await bcrypt.compare(password, userPlain.password);
     if (!isPasswordValid) return null;
 
-    return new User(userPlain);
+    return new UserClient(userPlain);
   }
 
   /**
@@ -36,7 +36,7 @@ export class UsersService {
    *
    * @return l'utilisateur créé
    */
-  async create(createUser: CreateUserDto): Promise<User> {
+  async create(createUser: CreateUserDto): Promise<UserClient> {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(createUser.password, saltRounds);
 
@@ -47,7 +47,7 @@ export class UsersService {
       },
     });
 
-    return new User(userPlain);
+    return new UserClient(userPlain);
   }
 
   /**
@@ -55,10 +55,10 @@ export class UsersService {
    *
    * @return un tableau de users.
    */
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<UserClient[]> {
     const usersPlain = await this.databaseService.user.findMany();
 
-    return usersPlain.map((userPlain) => new User(userPlain));
+    return usersPlain.map((userPlain) => new UserClient(userPlain));
   }
 
   /**
@@ -67,12 +67,12 @@ export class UsersService {
    * @param id
    * @return l'utilisateur ou null si absent
    */
-  async findOne(id: number): Promise<User | null> {
+  async findOne(id: number): Promise<UserClient | null> {
     const userPlain = await this.databaseService.user.findUnique({
       where: { id },
     });
     if (!userPlain) return null;
-    return new User(userPlain);
+    return new UserClient(userPlain);
   }
 
   /**
@@ -80,7 +80,10 @@ export class UsersService {
    *
    * @param id
    */
-  async remove(id: number) {
-    return this.databaseService.user.delete({ where: { id } });
+  async remove(id: number) : Promise<UserClient | null> {
+    const plainUser = await this.databaseService.user.delete({ where: { id } });
+    if (!plainUser) return null;
+    const { password, ...safeUser } = plainUser;
+    return new UserClient(safeUser);
   }
 }
