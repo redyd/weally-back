@@ -29,6 +29,7 @@ model Member {
 
 model Family {
   id        Int      @id @default(autoincrement())
+  name      String
   membres   Member[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

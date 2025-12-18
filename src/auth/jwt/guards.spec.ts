@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RolesGuard } from '../role-guard/RoleGuard';
+import { RolesGuard } from './RoleGuard';
 import { Role } from '../../users/entities/UserTypes';
 
 describe('RolesGuard', () => {
