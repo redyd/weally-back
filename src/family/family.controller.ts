@@ -6,7 +6,7 @@ import { JoinFamilyDto } from './dto/join-family.dto';
 import { CurrentUser } from '../auth/decorators/CurrentUser';
 import { MemberClient } from './entities/member.entity';
 import { FamilyClient } from './entities/family.entity';
-import { AuthenticatedUser } from '../users/entities/UserTypes';
+import { UserClient } from '../users/entities/user.entity';
 
 @UseGuards(JwtAuthGuard)
 @Controller('family')
@@ -22,7 +22,7 @@ export class FamilyController {
   @Post('create-join')
   createAndJoin(
     @Body() createFamilyDto: CreateFamilyDto,
-    @CurrentUser() currentUser: AuthenticatedUser,
+    @CurrentUser() currentUser: UserClient,
   ): Promise<{ family: FamilyClient; member: MemberClient }> {
     return this.familyService.createAndJoin(createFamilyDto, currentUser.id);
   }
@@ -47,7 +47,7 @@ export class FamilyController {
   @Post('join')
   join(
     @Body() joinFamilyDto: JoinFamilyDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: UserClient,
   ): Promise<MemberClient> {
     return this.familyService.joinFamily(joinFamilyDto, user.id);
   }

@@ -6,7 +6,7 @@ import { AuthenticatedUser } from '../../users/entities/UserTypes';
  * (info présente dans son token) grâce à l'annotation @CurrentUser
  */
 export const CurrentUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): AuthenticatedUser => {
+  (_data: unknown, ctx: ExecutionContext): AuthenticatedUser => {
     const request = ctx.switchToHttp().getRequest();
     return request.user;
   },
