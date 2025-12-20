@@ -37,7 +37,7 @@ export class FamilyService {
       return prisma.member.create({
         data: {
           userId,
-          familyId: joinFamilyDto.newFamilyId,
+          familyId: joinFamilyDto.id,
           role: 'MEMBER',
         },
       });
