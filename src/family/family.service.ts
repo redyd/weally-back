@@ -22,7 +22,7 @@ export class FamilyService {
   }
 
   /**
-   * Fait rejoindre un utilisateur à une famille sur base des ID.
+   * Fait rejoindre un utilisateur à une famille sur base des ID en tant que membre
    *
    * @param joinFamilyDto l'id de la famille
    * @param userId l'id de l'utilisateur
@@ -31,18 +31,55 @@ export class FamilyService {
     joinFamilyDto: JoinFamilyDto,
     userId: number,
   ): Promise<MemberClient> {
-    // delete where user is
-    this.databaseService.member.delete({ where: { userId: userId } });
+    const result = await this.databaseService.$transaction(async (prisma) => {
+      await prisma.member.deleteMany({ where: { userId } });
 
-    // join the new family as member
-    const newFamilyPlain = await this.databaseService.member.create({
-      data: {
-        userId: userId,
-        familyId: joinFamilyDto.newFamilyId,
-        role: 'MEMBER',
-      },
+      return prisma.member.create({
+        data: {
+          userId,
+          familyId: joinFamilyDto.newFamilyId,
+          role: 'MEMBER',
+        },
+      });
     });
 
-    return new MemberClient(newFamilyPlain);
+    return new MemberClient(result);
+  }
+
+  async createAndJoin(
+    createFamilyDto: CreateFamilyDto,
+    userId: number,
+  ): Promise<{ family: FamilyClient; member: MemberClient }> {
+    return this.databaseService.$transaction(async (prisma) => {
+      // 1. Vérifier si l'utilisateur existe
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // 2. Créer la famille
+      const family = await prisma.family.create({
+        data: createFamilyDto,
+      });
+
+      // 3. Retirer l'utilisateur de son ancienne famille
+      await prisma.member.deleteMany({
+        where: { userId },
+      });
+
+      // 4. Ajouter l'utilisateur à la nouvelle famille en tant que chef
+      const member = await prisma.member.create({
+        data: {
+          userId,
+          familyId: family.id,
+          role: 'CHEF',
+        },
+      });
+
+      return {
+        family: new FamilyClient(family),
+        member: new MemberClient(member),
+      };
+    });
   }
 }

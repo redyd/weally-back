@@ -13,12 +13,38 @@ import { AuthenticatedUser } from '../users/entities/UserTypes';
 export class FamilyController {
   constructor(private readonly familyService: FamilyService) {}
 
-  @Post()
+  /**
+   * Crée une nouvelle famille et rejoint en tant que chef.
+   *
+   * @param createFamilyDto la nouvelle famille
+   * @param currentUser
+   */
+  @Post('create-join')
+  createAndJoin(
+    @Body() createFamilyDto: CreateFamilyDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<{ family: FamilyClient; member: MemberClient }> {
+    return this.familyService.createAndJoin(createFamilyDto, currentUser.id);
+  }
+
+  /**
+   * Permet de créer une nouvelle famille (sans membre).
+   *
+   * @param createFamilyDto la nouvelle famille
+   */
+  @Post('create')
   create(@Body() createFamilyDto: CreateFamilyDto): Promise<FamilyClient> {
     return this.familyService.create(createFamilyDto);
   }
 
-  @Post()
+  /**
+   * Permet de rejoindre une nouvelle famille (en quittant l'ancienne si présente)
+   * en tant que membre.
+   *
+   * @param joinFamilyDto l'id de la famille
+   * @param user
+   */
+  @Post('join')
   join(
     @Body() joinFamilyDto: JoinFamilyDto,
     @CurrentUser() user: AuthenticatedUser,
