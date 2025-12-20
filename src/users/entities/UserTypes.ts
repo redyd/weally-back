@@ -1,7 +1,5 @@
-export type Role = 'CHEF' | 'MEMBER';
-
 export interface AuthenticatedUser {
-  id: string;
+  id: number;
   email: string;
   role: string;
 }
