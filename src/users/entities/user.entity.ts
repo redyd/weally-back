@@ -4,14 +4,15 @@ type UserWithMember = Prisma.UserGetPayload<{
   include: { member: true };
 }>;
 
-export interface UserClient extends UserWithMember {}
+export interface UserClient extends Omit<UserWithMember, 'password'> {}
 
 /**
  * Classe représentant l'utilisateur et sa possibilité d'être membre.
  */
 export class UserClient {
   constructor(data: UserWithMember) {
-    Object.assign(this, data);
+    const { password, ...userWithoutPassword } = data;
+    Object.assign(this, userWithoutPassword);
   }
 
   get role(): Role | null {
