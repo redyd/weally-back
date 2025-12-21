@@ -9,22 +9,22 @@ import { UserClient } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
-  @Get()
-  findAll(): Promise<UserClient[]> {
-    return this.usersService.findAll();
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<UserClient | null> {
-    return this.usersService.findOne(id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Roles('CHEF')
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number): Promise<UserClient | null> {
-    return this.usersService.remove(id);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get()
+  // findAll(): Promise<UserClient[]> {
+  //   return this.usersService.findAll();
+  // }
+  //
+  // @UseGuards(JwtAuthGuard)
+  // @Get(':id')
+  // findOne(@Param('id', ParseIntPipe) id: number): Promise<UserClient | null> {
+  //   return this.usersService.findOne(id);
+  // }
+  //
+  // @UseGuards(JwtAuthGuard)
+  // @Roles('CHEF')
+  // @Delete(':id')
+  // remove(@Param('id', ParseIntPipe) id: number): Promise<UserClient | null> {
+  //   return this.usersService.remove(id);
+  // }
 }

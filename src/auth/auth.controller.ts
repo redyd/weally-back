@@ -1,15 +1,11 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService, LoginResponse } from './auth.service';
 import { LoginDto } from './dto/login-dto';
 import { RefreshTokenDto } from './dto/refresh-token-dto';
 import { JwtRefreshGuard } from './jwt/JwtRefreshGuard';
 import { NoAuthGuard } from './jwt/NoAuthGuard';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -42,6 +38,7 @@ export class AuthController {
    *
    * @returns Promise<LoginResponse> contenant les tokens et les informations de l'utilisateur
    */
+  @Throttle({ short: { ttl: 1000, limit: 2 } })
   @UseGuards(NoAuthGuard)
   @Post('login')
   login(@Body() user: LoginDto): Promise<LoginResponse> {
@@ -55,6 +52,10 @@ export class AuthController {
    * @param createUserDto ses informations basiques
    * (email, nom d'utilisateur, mot de passe)
    */
+  @Throttle({
+    short: { ttl: 1000, limit: 3 },
+    long: { ttl: 3600000, limit: 10 },
+  })
   @UseGuards(NoAuthGuard)
   @Post('register')
   register(@Body() createUserDto: CreateUserDto) {
@@ -85,6 +86,10 @@ export class AuthController {
    * }
    * @param token
    */
+  @Throttle({
+    short: { ttl: 1000, limit: 10 },
+    long: { ttl: 60000, limit: 150 },
+  })
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   refreshToken(@Body() token: RefreshTokenDto): Promise<LoginResponse> {

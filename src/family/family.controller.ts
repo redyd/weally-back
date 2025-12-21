@@ -7,6 +7,7 @@ import { CurrentUser } from '../auth/decorators/CurrentUser';
 import { MemberClient } from './entities/member.entity';
 import { FamilyClient } from './entities/family.entity';
 import { UserClient } from '../users/entities/user.entity';
+import { Throttle } from '@nestjs/throttler';
 
 @UseGuards(JwtAuthGuard)
 @Controller('family')
@@ -20,6 +21,7 @@ export class FamilyController {
    * @param currentUser
    */
   @Post('create-join')
+  @Throttle({ short: { ttl: 2000, limit: 1 } })
   createAndJoin(
     @Body() createFamilyDto: CreateFamilyDto,
     @CurrentUser() currentUser: UserClient,
@@ -33,6 +35,7 @@ export class FamilyController {
    * @param createFamilyDto la nouvelle famille
    */
   @Post('create')
+  @Throttle({ short: { ttl: 2000, limit: 1 } })
   create(@Body() createFamilyDto: CreateFamilyDto): Promise<FamilyClient> {
     return this.familyService.create(createFamilyDto);
   }
@@ -45,6 +48,7 @@ export class FamilyController {
    * @param user
    */
   @Post('join')
+  @Throttle({ short: { ttl: 1000, limit: 2 } })
   join(
     @Body() joinFamilyDto: JoinFamilyDto,
     @CurrentUser() user: UserClient,
