@@ -8,6 +8,7 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+// For user/auth
 model User {
   id        Int      @id @default(autoincrement())
   username  String
@@ -15,6 +16,8 @@ model User {
   password  String
   member    Member?
   createdAt DateTime @default(now())
+  food      Food[]
+  meals     Meal[]
 }
 
 model Member {
@@ -27,14 +30,88 @@ model Member {
 }
 
 model Family {
-  id        Int      @id @default(autoincrement())
-  name      String
-  membres   Member[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int          @id @default(autoincrement())
+  name         String
+  membres      Member[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  foodFamilies FoodFamily[]
 }
 
 enum Role {
   CHEF
   MEMBER
+}
+
+// about foods
+model Meal {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  images      String[]
+  creator     User?    @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  creatorId   Int?
+}
+
+model Food {
+  id           Int             @id @default(autoincrement())
+  name         String
+  image        String?
+  description  String?
+  category     Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryId   Int
+  tags         FoodTag[]
+  allergenes   FoodAllergene[]
+  foodFamilies FoodFamily[]
+  creator      User?           @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  creatorId    Int?
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  label String @unique
+  foods Food[]
+}
+
+model Tag {
+  id    Int       @id @default(autoincrement())
+  label String    @unique
+  foods FoodTag[]
+}
+
+model Allergene {
+  id    Int             @id @default(autoincrement())
+  label String          @unique
+  foods FoodAllergene[]
+}
+
+// liaison many to many
+model FoodTag {
+  food   Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  foodId Int
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Restrict)
+  tagId  Int
+
+  @@id([foodId, tagId])
+  @@index([tagId])
+}
+
+model FoodAllergene {
+  food        Food      @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  foodId      Int
+  allergene   Allergene @relation(fields: [allergeneId], references: [id], onDelete: Restrict)
+  allergeneId Int
+
+  @@id([foodId, allergeneId])
+  @@index([allergeneId])
+}
+
+model FoodFamily {
+  food     Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  foodId   Int
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Restrict)
+  familyId Int
+
+  @@id([familyId, foodId])
+  @@index([familyId])
 }
