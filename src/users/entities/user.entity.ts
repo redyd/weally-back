@@ -38,10 +38,6 @@ export class UserClient {
     };
   }
 
-  hasFamily(): boolean {
-    return this.role != null && this.familyId != null;
-  }
-
   toJson() {
     return {
       id: this.id,
