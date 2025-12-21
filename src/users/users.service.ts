@@ -50,7 +50,7 @@ export class UsersService {
       },
     });
 
-    return new UserClient(userPlain);
+    return new UserClient({ ...userPlain, member: null });
   }
 
   /**
@@ -61,7 +61,9 @@ export class UsersService {
   async findAll(): Promise<UserClient[]> {
     const usersPlain = await this.databaseService.user.findMany();
 
-    return usersPlain.map((userPlain) => new UserClient(userPlain));
+    return usersPlain.map(
+      (userPlain) => new UserClient({ ...userPlain, member: null }),
+    );
   }
 
   /**
@@ -71,11 +73,11 @@ export class UsersService {
    * @return l'utilisateur ou null si absent
    */
   async findOne(id: number): Promise<UserClient | null> {
-    const userPlain = await this.databaseService.user.findUnique({
+    const plainUser = await this.databaseService.user.findUnique({
       where: { id },
     });
-    if (!userPlain) return null;
-    return new UserClient(userPlain);
+    if (!plainUser) return null;
+    return new UserClient({ ...plainUser, member: null });
   }
 
   /**
@@ -86,7 +88,6 @@ export class UsersService {
   async remove(id: number): Promise<UserClient | null> {
     const plainUser = await this.databaseService.user.delete({ where: { id } });
     if (!plainUser) return null;
-    const { password, ...safeUser } = plainUser;
-    return new UserClient(safeUser);
+    return new UserClient({ ...plainUser, member: null });
   }
 }

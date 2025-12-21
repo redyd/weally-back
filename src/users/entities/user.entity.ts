@@ -1,27 +1,26 @@
-import { Role } from './UserTypes';
+import { Prisma, Role } from '@prisma/client';
 
+type UserWithMember = Prisma.UserGetPayload<{
+  include: { member: true };
+}>;
+
+export interface UserClient extends Omit<UserWithMember, 'password'> {}
+
+/**
+ * Classe représentant l'utilisateur et sa possibilité d'être membre.
+ */
 export class UserClient {
-  private readonly id: number;
-  private readonly email: string;
-  private readonly username: string;
-  private readonly created_at: Date;
+  constructor(data: UserWithMember) {
+    const { password, ...userWithoutPassword } = data;
+    Object.assign(this, userWithoutPassword);
+  }
 
-  private readonly role: Role | null;
-  private readonly familyId: number | null;
+  get role(): Role | null {
+    return this.member?.role ?? null;
+  }
 
-  constructor(data: {
-    id: number;
-    email: string;
-    username: string;
-    createdAt: Date;
-    member?: { role: Role; familyId: number } | null;
-  }) {
-    this.id = data.id;
-    this.email = data.email;
-    this.username = data.username;
-    this.created_at = data.createdAt;
-    this.role = data.member?.role ?? null;
-    this.familyId = data.member?.familyId ?? null;
+  get familyId(): number | null {
+    return this.member?.familyId ?? null;
   }
 
   basicInfo() {
@@ -29,7 +28,7 @@ export class UserClient {
       id: this.id,
       email: this.email,
       role: this.role,
-    }
+    };
   }
 
   strictInfo() {
@@ -40,6 +39,17 @@ export class UserClient {
   }
 
   hasFamily(): boolean {
-    return this.role != null || this.familyId != null;
+    return this.role != null && this.familyId != null;
+  }
+
+  toJson() {
+    return {
+      id: this.id,
+      email: this.email,
+      username: this.username,
+      role: this.role,
+      familyId: this.familyId,
+      createdAt: this.createdAt,
+    };
   }
 }
