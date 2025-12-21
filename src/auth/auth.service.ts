@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserClient } from '../users/entities/user.entity';
@@ -22,6 +22,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  private readonly logger = new Logger('AuthService');
+
   /**
    * Permet de valider l'email et le mot de passe d'un utilisateur.
    *
@@ -30,7 +32,10 @@ export class AuthService {
    */
   async validateUser(email: string, password: string): Promise<UserClient> {
     const user = await this.usersService.validateUser(email, password);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) {
+      this.logger.log(`User ${email} try to log with invalid credentials`);
+      throw new UnauthorizedException('Invalid credentials');
+    }
     return user;
   }
 
@@ -41,39 +46,56 @@ export class AuthService {
    * @param password
    */
   async login(email: string, password: string): Promise<LoginResponse> {
+    this.logger.log(`User ${email} is trying to login`);
     const user = await this.validateUser(email, password);
+    this.logger.log(`User ${email} has been logged in`);
 
     return this.createTokens(user);
   }
 
   async register(createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    this.logger.log(
+      `Trying to register for ${createUserDto.email} | ${createUserDto.username}`,
+    );
+    const user: UserClient = await this.usersService.create(createUserDto);
+    this.logger.log(`User ${user.email} registered`);
+    return user;
   }
 
   /**
    * Permet de rafraichir ses tokens.
    *
-   * @param refreshToken le refresh token de l'utilisateur
+   * @param refreshDto le refresh token de l'utilisateur
    */
-  async refresh(refreshToken: RefreshTokenDto): Promise<LoginResponse> {
+  async refresh(refreshDto: RefreshTokenDto): Promise<LoginResponse> {
+    this.logger.log(
+      `Trying to refresh token for user ${refreshDto.refresh_token}`,
+    );
     let user: UserClient | null;
 
     try {
-      const userInfo = this.jwtService.verify(refreshToken.refresh_token, {
+      const userInfo = this.jwtService.verify(refreshDto.refresh_token, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
 
       user = await this.usersService.findOne(userInfo.id);
     } catch (error) {
+      this.logger.log(
+        `Failed to refresh token for user ${refreshDto.refresh_token}`,
+      );
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    if (!user) throw new UnauthorizedException('User not found');
+    if (!user) {
+      this.logger.log(`User with token ${refreshDto.refresh_token} not found`);
+      throw new UnauthorizedException('User not found');
+    }
 
+    this.logger.log(`Token has been refreshed for user ${user.email}`);
     return this.createTokens(user);
   }
 
-  createTokens(user: UserClient) {
+  createTokens(user: UserClient): LoginResponse {
     const payloadAccess = { ...user.basicInfo(), type: 'access_token' };
     const payloadRefresh = { ...user.strictInfo(), type: 'refresh_token' };
 

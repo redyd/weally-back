@@ -26,7 +26,7 @@ export class FamilyController {
     @Body() createFamilyDto: CreateFamilyDto,
     @CurrentUser() currentUser: UserClient,
   ): Promise<{ family: FamilyClient; member: MemberClient }> {
-    return this.familyService.createAndJoin(createFamilyDto, currentUser.id);
+    return this.familyService.createAndJoin(createFamilyDto, currentUser);
   }
 
   /**
@@ -53,6 +53,6 @@ export class FamilyController {
     @Body() joinFamilyDto: JoinFamilyDto,
     @CurrentUser() user: UserClient,
   ): Promise<MemberClient> {
-    return this.familyService.joinFamily(joinFamilyDto, user.id);
+    return this.familyService.joinFamily(joinFamilyDto, user);
   }
 }
