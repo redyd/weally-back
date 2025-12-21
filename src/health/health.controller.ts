@@ -1,11 +1,11 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 
-@SkipThrottle()
 @Controller('health')
 export class HealthController {
   private logger = new Logger('HealthController');
 
+  @SkipThrottle({ short: true, long: true })
   @Get()
   getHealth() {
     this.logger.log('Getting health');
