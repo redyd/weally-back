@@ -22,7 +22,18 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "docker:dev": "docker compose --env-file .env -f docker-compose.dev.yml up postgres redis -d",
-    "docker:dev:down": "docker compose --env-file .env -f docker-compose.dev.yml down"
+    "docker:dev:down": "docker compose --env-file .env -f docker-compose.dev.yml down",
+    "prisma:generate:auth": "prisma generate --schema prisma/auth/schema.prisma",
+    "prisma:generate:weally": "prisma generate --schema prisma/weally/schema.prisma",
+    "prisma:generate:all": "npm run prisma:generate:auth && npm run prisma:generate:weally",
+    "prisma:migrate:auth": "prisma migrate dev --schema prisma/auth/schema.prisma",
+    "prisma:migrate:weally": "prisma migrate dev --schema prisma/weally/schema.prisma",
+    "prisma:migrate:all": "npm run prisma:migrate:auth && npm run prisma:migrate:weally",
+    "prisma:migrate:prod": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "prisma:seed:auth": "ts-node prisma/auth/seed.ts",
+    "prisma:seed:weally": "ts-node prisma/weally/seed.ts",
+    "prisma:seed:all": "npm run prisma:seed:auth && npm run prisma:seed:weally"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

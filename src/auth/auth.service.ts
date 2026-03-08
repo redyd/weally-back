@@ -3,7 +3,7 @@ import {JwtService} from '@nestjs/jwt';
 import {ConfigService} from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import {v4 as uuidv4} from 'uuid';
-import {PrismaService} from '../prisma/prisma.service';
+import {PrismaAuthService} from '../prisma-auth/prisma-auth.service';
 import {RedisService} from '../redis/redis.service';
 import {LoginDto, RegisterDto} from './dto/auth.dto';
 
@@ -18,7 +18,7 @@ export interface AuthTokens {
 @Injectable()
 export class AuthService {
     constructor(
-        private prisma: PrismaService,
+        private prisma: PrismaAuthService,
         private jwtService: JwtService,
         private configService: ConfigService,
         private redis: RedisService,
