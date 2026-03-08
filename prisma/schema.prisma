@@ -1,12 +1,13 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../../src/generated/auth"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 
 model User {
   id        String   @id @default(cuid())
@@ -18,7 +19,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   familyId        String?
-  family          Family?  @relation("FamilyMembers",  fields: [familyId], references: [id], onDelete: SetNull)
+  family          Family?  @relation("FamilyMembers", fields: [familyId], references: [id], onDelete: SetNull)
   familiesCreated Family[] @relation("FamilyCreator")
 
   @@map("users")
@@ -33,6 +34,18 @@ model Family {
   creatorId String
   creator   User   @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Restrict)
   members   User[] @relation("FamilyMembers")
+  meals     Meal[]
 
   @@map("families")
+}
+
+// ─── Weally ───────────────────────────────────────────────────────────────────
+
+model Meal {
+  id       String @id @default(cuid())
+  label    String
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@map("meals")
 }

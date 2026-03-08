@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaAuthModule } from './prisma-auth/prisma-auth.module';
-import { PrismaWeallyModule } from './prisma-weally/prisma-weally.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -13,8 +12,7 @@ import { MealModule } from './meal/meal.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    PrismaAuthModule,        // schéma auth
-    PrismaWeallyModule,  // schéma weally
+    PrismaModule,
     RedisModule,
     AuthModule,
     UsersModule,

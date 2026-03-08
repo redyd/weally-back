@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
-import { PrismaAuthService } from '../../prisma-auth/prisma-auth.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 export interface JwtPayload {
     sub: string;   // userId
@@ -18,7 +18,7 @@ export interface JwtPayload {
 export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') {
     constructor(
         private configService: ConfigService,
-        private prisma: PrismaAuthService,
+        private prisma: PrismaService,
     ) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

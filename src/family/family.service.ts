@@ -4,12 +4,12 @@ import {
     ForbiddenException,
     ConflictException,
 } from '@nestjs/common';
-import { PrismaAuthService } from '../prisma-auth/prisma-auth.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateFamilyDto, UpdateFamilyDto } from './dto/family.dto';
 
 @Injectable()
 export class FamilyService {
-    constructor(private prisma: PrismaAuthService) {}
+    constructor(private prisma: PrismaService) {}
 
     async create(userId: string, dto: CreateFamilyDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
