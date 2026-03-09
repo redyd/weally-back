@@ -8,16 +8,16 @@ import { FamilyModule } from './family/family.module';
 import { MealModule } from './meal/meal.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    PrismaModule,
-    RedisModule,
-    AuthModule,
-    UsersModule,
-    FamilyModule,
-    MealModule,
-  ],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        PrismaModule,
+        RedisModule,
+        AuthModule,
+        UsersModule,
+        FamilyModule,
+        MealModule,
+    ],
 })
 export class AppModule {}
