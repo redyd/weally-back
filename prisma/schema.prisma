@@ -21,8 +21,6 @@ model User {
   familyId        String?
   family          Family?  @relation("FamilyMembers", fields: [familyId], references: [id], onDelete: SetNull)
   familiesCreated Family[] @relation("FamilyCreator")
-
-  @@map("users")
 }
 
 model Family {
@@ -35,17 +33,41 @@ model Family {
   creator   User   @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Restrict)
   members   User[] @relation("FamilyMembers")
   meals     Meal[]
-
-  @@map("families")
 }
 
-// ─── Weally ───────────────────────────────────────────────────────────────────
+// ─── Meal ─────────────────────────────────────────────────────────────────────
 
 model Meal {
-  id       String @id @default(cuid())
-  label    String
+  id    String @id @default(cuid())
+  label String
+
   familyId String
   family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
-  @@map("meals")
+  aliment Aliment[]
+}
+
+model Aliment {
+  id    String @id @default(cuid())
+  label String
+
+  mealId String?
+  meal   Meal?   @relation(fields: [mealId], references: [id], onDelete: SetNull)
+
+  dietTags TaggedAliment[]
+}
+
+model DietTag {
+  label    String          @id
+  aliments TaggedAliment[]
+}
+
+model TaggedAliment {
+  aliment   Aliment @relation(fields: [alimentId], references: [id])
+  alimentId String
+
+  dietTag   DietTag @relation(fields: [dietLabel], references: [label])
+  dietLabel String
+
+  @@id([alimentId, dietLabel])
 }
