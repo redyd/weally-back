@@ -1,12 +1,14 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMealDto, UpdateMealDto } from './dto/meal.dto';
 
 @Injectable()
 export class MealService {
-  constructor(
-      private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   // Vérifie que le user appartient bien à la famille demandée
   private async assertUserInFamily(userId: string, familyId: string) {
@@ -15,7 +17,8 @@ export class MealService {
       select: { familyId: true },
     });
     if (!user) throw new NotFoundException('User not found');
-    if (user.familyId !== familyId) throw new ForbiddenException('You do not belong to this family');
+    if (user.familyId !== familyId)
+      throw new ForbiddenException('You do not belong to this family');
   }
 
   async findAllByFamily(familyId: string) {
