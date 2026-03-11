@@ -3,7 +3,7 @@ import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
 export class CreateMealDto {
     @IsString()
     @IsNotEmpty()
-    @MaxLength(200)
+    @MaxLength(50)
     label: string;
 
     @IsString()
@@ -14,6 +14,6 @@ export class CreateMealDto {
 export class UpdateMealDto {
     @IsString()
     @IsNotEmpty()
-    @MaxLength(200)
+    @MaxLength(50)
     label: string;
 }

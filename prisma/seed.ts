@@ -1,96 +1,86 @@
-import {PrismaClient} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
-import {scrypt, randomBytes} from 'crypto';
-import {promisify} from 'util';
+import { auth } from '../src/lib/auth';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
-const scryptAsync = promisify(scrypt);
-
-async function hashPassword(password: string): Promise<string> {
-    const salt = randomBytes(16).toString('hex');
-    const hash = (await scryptAsync(password, salt, 64)) as Buffer;
-    return `${salt}:${hash.toString('hex')}`;
-}
 
 async function main() {
     console.log('Seeding database...');
 
-    // ─── Users + Accounts ───────────────────────────────────────────────────────
+    // ─── Cleanup ─────────────────────────────────────────────────────────────────
+
+    await prisma.meal.deleteMany();
+    await prisma.family.deleteMany();
+    await prisma.account.deleteMany();
+    await prisma.session.deleteMany();
+    await prisma.user.deleteMany();
+
+    // ─── Users ───────────────────────────────────────────────────────────────────
 
     const usersData = [
-        {email: 'alice@example.com', firstName: 'Alice', lastName: 'Dupont', password: 'Password123!'},
-        {email: 'bob@example.com', firstName: 'Bob', lastName: 'Dupont', password: 'Password123!'},
-        {email: 'charlie@example.com', firstName: 'Charlie', lastName: 'Martin', password: 'Password123!'},
+        { email: 'alice@example.com', firstName: 'Alice', lastName: 'Dupont',  password: 'Password123!' },
+        { email: 'bob@example.com',   firstName: 'Bob',   lastName: 'Dupont',  password: 'Password123!' },
+        { email: 'charlie@example.com', firstName: 'Charlie', lastName: 'Martin', password: 'Password123!' },
     ];
 
-    const createdUsers: Record<string, { id: string; email: string }> = {};
+    const createdUsers: Record<string, string> = {}; // email → id
 
     for (const u of usersData) {
-        const user = await prisma.user.upsert({
-            where: {email: u.email},
-            update: {},
-            create: {
+        const result = await auth.api.signUpEmail({
+            body: {
                 email: u.email,
+                password: u.password,
                 name: `${u.firstName} ${u.lastName}`,
+            },
+        });
+
+        // Mettre à jour les champs custom non gérés par signUpEmail
+        await prisma.user.update({
+            where: { email: u.email },
+            data: {
                 emailVerified: true,
             },
         });
 
-        // Créer l'Account credential BetterAuth si pas encore présent
-        const existingAccount = await prisma.account.findFirst({
-            where: {userId: user.id, providerId: 'credential'},
-        });
-
-        if (!existingAccount) {
-            await prisma.account.create({
-                data: {
-                    accountId: user.id,
-                    providerId: 'credential',
-                    userId: user.id,
-                    password: await hashPassword(u.password),
-                },
-            });
-        }
-
-        createdUsers[u.email] = user;
+        createdUsers[u.email] = result.user.id;
     }
 
-    const alice = createdUsers['alice@example.com'];
-    const bob = createdUsers['bob@example.com'];
-    const charlie = createdUsers['charlie@example.com'];
+    const aliceId   = createdUsers['alice@example.com'];
+    const bobId     = createdUsers['bob@example.com'];
+    const charlieId = createdUsers['charlie@example.com'];
 
-    console.log(`✅ Users: ${alice.email}, ${bob.email}, ${charlie.email}`);
+    console.log(`✅ Users: alice, bob, charlie`);
 
-    // ─── Family ─────────────────────────────────────────────────────────────────
+    // ─── Family ──────────────────────────────────────────────────────────────────
 
-    const dupontFamily = await prisma.family.upsert({
-        where: {id: 'seed-family-dupont'},
-        update: {},
-        create: {
+    const dupontFamily = await prisma.family.create({
+        data: {
             id: 'seed-family-dupont',
             name: 'Dupont Family',
-            creatorId: alice.id,
+            creatorId: aliceId,
+            members: {
+                connect: [{ id: aliceId }, { id: bobId }],
+            },
         },
     });
 
-    await prisma.user.update({where: {id: alice.id}, data: {familyId: dupontFamily.id}});
-    await prisma.user.update({where: {id: bob.id}, data: {familyId: dupontFamily.id}});
-
     console.log(`✅ Family: ${dupontFamily.name} (Alice + Bob)`);
 
-    // ─── Meals ──────────────────────────────────────────────────────────────────
+    // ─── Meals ───────────────────────────────────────────────────────────────────
 
     const meals = [
-        {id: 'seed-meal-1', label: 'Pasta Bolognese', familyId: dupontFamily.id},
-        {id: 'seed-meal-2', label: 'Caesar Salad', familyId: dupontFamily.id},
-        {id: 'seed-meal-3', label: 'Grilled Chicken', familyId: dupontFamily.id},
-        {id: 'seed-meal-4', label: 'Vegetable Stir Fry', familyId: dupontFamily.id},
-        {id: 'seed-meal-5', label: 'Salmon with Rice', familyId: dupontFamily.id},
+        { id: 'seed-meal-1', label: 'Pasta Bolognese'    },
+        { id: 'seed-meal-2', label: 'Caesar Salad'       },
+        { id: 'seed-meal-3', label: 'Grilled Chicken'    },
+        { id: 'seed-meal-4', label: 'Vegetable Stir Fry' },
+        { id: 'seed-meal-5', label: 'Salmon with Rice'   },
     ];
 
-    for (const meal of meals) {
-        await prisma.meal.upsert({where: {id: meal.id}, update: {}, create: meal});
-    }
+    await prisma.meal.createMany({
+        data: meals.map(m => ({ ...m, familyId: dupontFamily.id })),
+    });
 
     console.log(`✅ Meals: ${meals.length} repas pour la famille Dupont`);
     console.log('');

@@ -1,9 +1,13 @@
-// src/types/prisma.types.ts
 import { Prisma, Meal } from '@prisma/client';
+
+// confirmation
+export type Confirmation = {
+    message: string;
+    status: 'ok' | 'error';
+}
 
 // ─── User ─────────────────────────────────────────────────────────────────────
 
-// Profil de base — sans données sensibles ni relations BetterAuth internes
 export type SafeUser = Prisma.UserGetPayload<{
     select: {
         id: true;
@@ -17,7 +21,6 @@ export type SafeUser = Prisma.UserGetPayload<{
     };
 }>;
 
-// Profil avec sa famille
 export type UserWithFamily = Prisma.UserGetPayload<{
     select: {
         id: true;
@@ -34,7 +37,6 @@ export type UserWithFamily = Prisma.UserGetPayload<{
 
 // ─── Family ───────────────────────────────────────────────────────────────────
 
-// Famille seule
 export type SafeFamily = Prisma.FamilyGetPayload<{
     select: {
         id: true;
@@ -45,7 +47,6 @@ export type SafeFamily = Prisma.FamilyGetPayload<{
     };
 }>;
 
-// Famille avec ses membres et créateur (vue détaillée)
 export type FamilyWithMembers = Prisma.FamilyGetPayload<{
     select: {
         id: true;
@@ -54,7 +55,7 @@ export type FamilyWithMembers = Prisma.FamilyGetPayload<{
         updatedAt: true;
         creatorId: true;
         creator: {
-            select: { id: true; name: true; email: true };
+            select: { id: true; name: true; email: true, image: true };
         };
         members: {
             select: { id: true; name: true; email: true; image: true };
@@ -62,7 +63,6 @@ export type FamilyWithMembers = Prisma.FamilyGetPayload<{
     };
 }>;
 
-// Famille avec repas
 export type FamilyWithMeals = Prisma.FamilyGetPayload<{
     select: {
         id: true;
@@ -76,10 +76,8 @@ export type FamilyWithMeals = Prisma.FamilyGetPayload<{
 
 // ─── Meal ─────────────────────────────────────────────────────────────────────
 
-// Repas seul — le modèle est simple, pas de champs sensibles
 export type SafeMeal = Meal;
 
-// Repas avec sa famille
 export type MealWithFamily = Prisma.MealGetPayload<{
     include: {
         family: {
