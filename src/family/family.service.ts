@@ -55,8 +55,8 @@ export class FamilyService {
         const family = await this.prisma.family.findUnique({
             where: { id },
             include: {
-                creator: { select: { id: true, firstName: true, lastName: true, email: true } },
-                members: { select: { id: true, firstName: true, lastName: true, email: true } },
+                creator: { select: { id: true, name: true, email: true } },
+                members: { select: { id: true, name: true, email: true } },
             },
         });
 

@@ -9,64 +9,55 @@ import {
     HttpCode,
     HttpStatus,
 } from '@nestjs/common';
-import { FamilyService } from './family.service';
-import { CreateFamilyDto, UpdateFamilyDto, JoinFamilyDto } from './dto/family.dto';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import {Session} from '@thallesp/nestjs-better-auth';
+import type {UserSession} from '@thallesp/nestjs-better-auth';
+import {FamilyService} from './family.service';
+import {
+    CreateFamilyDto,
+    UpdateFamilyDto,
+    JoinFamilyDto,
+} from './dto/family.dto';
 
-@Controller('familles')
+@Controller('family')
 export class FamilyController {
-    constructor(private familleService: FamilyService) {}
+    constructor(private familleService: FamilyService) {
+    }
 
-    // POST /api/v1/familles
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    create(
-        @CurrentUser('id') userId: string,
-        @Body() dto: CreateFamilyDto,
-    ) {
-        return this.familleService.create(userId, dto);
+    create(@Session() session: UserSession, @Body() dto: CreateFamilyDto) {
+        return this.familleService.create(session.user.id, dto);
     }
 
-    // POST /api/v1/familles/join
     @Post('join')
     @HttpCode(HttpStatus.OK)
-    join(
-        @CurrentUser('id') userId: string,
-        @Body() dto: JoinFamilyDto,
-    ) {
-        return this.familleService.join(userId, dto.familyId);
+    join(@Session() session: UserSession, @Body() dto: JoinFamilyDto) {
+        return this.familleService.join(session.user.id, dto.familyId);
     }
 
-    // POST /api/v1/familles/leave
     @Post('leave')
     @HttpCode(HttpStatus.OK)
-    leave(@CurrentUser('id') userId: string) {
-        return this.familleService.leave(userId);
+    leave(@Session() session: UserSession) {
+        return this.familleService.leave(session.user.id);
     }
 
-    // GET /api/v1/familles/:id
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.familleService.findById(id);
     }
 
-    // PATCH /api/v1/familles/:id
     @Patch(':id')
     update(
-        @CurrentUser('id') userId: string,
+        @Session() session: UserSession,
         @Param('id') familleId: string,
         @Body() dto: UpdateFamilyDto,
     ) {
-        return this.familleService.update(userId, familleId, dto);
+        return this.familleService.update(session.user.id, familleId, dto);
     }
 
-    // DELETE /api/v1/familles/:id
     @Delete(':id')
     @HttpCode(HttpStatus.OK)
-    delete(
-        @CurrentUser('id') userId: string,
-        @Param('id') familleId: string,
-    ) {
-        return this.familleService.delete(userId, familleId);
+    delete(@Session() session: UserSession, @Param('id') familleId: string) {
+        return this.familleService.delete(session.user.id, familleId);
     }
 }

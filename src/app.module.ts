@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
-import { RedisModule } from './redis/redis.module';
-import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { FamilyModule } from './family/family.module';
 import { MealModule } from './meal/meal.module';
+import { auth } from './lib/auth';
+import { AuthModule, AuthGuard } from '@thallesp/nestjs-better-auth';
 
 @Module({
   imports: [
@@ -13,11 +13,16 @@ import { MealModule } from './meal/meal.module';
       isGlobal: true,
     }),
     PrismaModule,
-    RedisModule,
-    AuthModule,
+    AuthModule.forRoot({ auth }),
     UsersModule,
     FamilyModule,
     MealModule,
+  ],
+  providers: [
+    {
+      provide: 'APP_GUARD',
+      useClass: AuthGuard,
+    },
   ],
 })
 export class AppModule {}
