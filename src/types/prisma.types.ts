@@ -93,3 +93,19 @@ export type MealWithFamily = Prisma.MealGetPayload<{
         };
     };
 }>;
+
+// planning
+export type PlannedMeal = Prisma.PlanningGetPayload<{
+    select: {
+        id: true;
+        type: true;
+        date: true;
+        meal: {
+            select: {
+                id: true;
+                label: true;
+                description: true;
+            }
+        }
+    }
+}>

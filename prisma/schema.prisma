@@ -82,17 +82,40 @@ model Family {
 
   creatorId String
   creator   User   @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Restrict)
-  members   User[] @relation("FamilyMembers")
-  meals     Meal[]
+
+  members User[] @relation("FamilyMembers")
+  meals   Meal[]
 
   @@map("families")
 }
 
+model Planning {
+  id   String   @id @default(cuid())
+  type MealType
+  date DateTime
+
+  mealId String
+  meal   Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@map("plannings")
+}
+
 model Meal {
-  id       String @id @default(cuid())
-  label    String
+  id          String @id @default(cuid())
+  label       String
+  description String?
+
   familyId String
   family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
+  plannings Planning[]
+
   @@map("meals")
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
 }

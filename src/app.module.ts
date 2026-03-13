@@ -6,6 +6,8 @@ import { FamilyModule } from './family/family.module';
 import { MealModule } from './meal/meal.module';
 import { auth } from './lib/auth';
 import { AuthModule, AuthGuard } from '@thallesp/nestjs-better-auth';
+import { PlanningModule } from './planning/planning.module';
+import {LoggerModule} from "nestjs-pino";
 
 @Module({
   imports: [
@@ -17,6 +19,14 @@ import { AuthModule, AuthGuard } from '@thallesp/nestjs-better-auth';
     UsersModule,
     FamilyModule,
     MealModule,
+    PlanningModule,
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          target: 'pino-pretty',
+        },
+      },
+    }),
   ],
   providers: [
     {
