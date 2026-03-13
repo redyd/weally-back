@@ -1,4 +1,4 @@
-import { Prisma, Meal } from '@prisma/client';
+import {Prisma, Meal} from '@prisma/client';
 
 // confirmation
 export type Confirmation = {
@@ -31,7 +31,15 @@ export type UserWithFamily = Prisma.UserGetPayload<{
         familyId: true;
         createdAt: true;
         updatedAt: true;
-        family: { select: { id: true; name: true } };
+        family: {
+            select: {
+                id: true;
+                name: true;
+                createdAt: true;
+                updatedAt: true;
+                creatorId: true;
+            }
+        };
     };
 }>;
 

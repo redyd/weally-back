@@ -17,6 +17,7 @@ import {
     UpdateFamilyDto,
     JoinFamilyDto,
 } from './dto/family.dto';
+import {Confirmation, FamilyWithMembers, SafeFamily} from "../types/prisma.types";
 
 @Controller('family')
 export class FamilyController {
@@ -25,24 +26,24 @@ export class FamilyController {
 
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    create(@Session() session: UserSession, @Body() dto: CreateFamilyDto) {
+    create(@Session() session: UserSession, @Body() dto: CreateFamilyDto): Promise<SafeFamily> {
         return this.familleService.create(session.user.id, dto);
     }
 
     @Post('join')
     @HttpCode(HttpStatus.OK)
-    join(@Session() session: UserSession, @Body() dto: JoinFamilyDto) {
+    join(@Session() session: UserSession, @Body() dto: JoinFamilyDto): Promise<SafeFamily> {
         return this.familleService.join(session.user.id, dto.familyId);
     }
 
     @Post('leave')
     @HttpCode(HttpStatus.OK)
-    leave(@Session() session: UserSession) {
+    leave(@Session() session: UserSession): Promise<Confirmation> {
         return this.familleService.leave(session.user.id);
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
+    findOne(@Param('id') id: string): Promise<FamilyWithMembers> {
         return this.familleService.findById(id);
     }
 
@@ -51,13 +52,13 @@ export class FamilyController {
         @Session() session: UserSession,
         @Param('id') familleId: string,
         @Body() dto: UpdateFamilyDto,
-    ) {
+    ): Promise<SafeFamily> {
         return this.familleService.update(session.user.id, familleId, dto);
     }
 
     @Delete(':id')
     @HttpCode(HttpStatus.OK)
-    delete(@Session() session: UserSession, @Param('id') familleId: string) {
+    delete(@Session() session: UserSession, @Param('id') familleId: string): Promise<Confirmation> {
         return this.familleService.delete(session.user.id, familleId);
     }
 }
