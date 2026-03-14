@@ -8,6 +8,7 @@ import { auth } from './lib/auth';
 import { AuthModule, AuthGuard } from '@thallesp/nestjs-better-auth';
 import { PlanningModule } from './planning/planning.module';
 import {LoggerModule} from "nestjs-pino";
+import { InvitationModule } from './invitation/invitation.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import {LoggerModule} from "nestjs-pino";
         },
       },
     }),
+    InvitationModule,
   ],
   providers: [
     {

@@ -1,17 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 
 export async function seedFamilies(
-    prisma: PrismaClient,
-    users: { aliceId: string; bobId: string }
+    prisma: PrismaClient
 ) {
     const dupontFamily = await prisma.family.create({
         data: {
             id: 'seed-family-dupont',
-            name: 'Dupont Family',
-            creatorId: users.aliceId,
-            members: {
-                connect: [{ id: users.aliceId }, { id: users.bobId }],
-            },
+            name: 'Dupont Family'
         },
     });
 

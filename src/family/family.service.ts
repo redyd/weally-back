@@ -1,88 +1,85 @@
 import {
     Injectable,
     NotFoundException,
-    ForbiddenException,
     ConflictException,
 } from '@nestjs/common';
 import {PrismaService} from '../prisma/prisma.service';
-import {CreateFamilyDto, UpdateFamilyDto} from './dto/family.dto';
-import {Confirmation, FamilyWithMembers, SafeFamily} from "../types/prisma.types";
+import {CreateFamilyDto} from './dto/family.dto';
+import {familySelect, FamilyWithMembers} from "../types/prisma.types";
+import {Family} from "../types/api.types";
 
 @Injectable()
 export class FamilyService {
     constructor(private prisma: PrismaService) {
     }
 
-    async create(userId: string, dto: CreateFamilyDto): Promise<SafeFamily> {
-        const user = await this.prisma.user.findUnique({where: {id: userId}});
-        if (user?.familyId) throw new ConflictException('You already belong to a family');
-
-        return this.prisma.$transaction(async (tx) => {
-            const family = await tx.family.create({
-                data: {name: dto.name.trim(), creatorId: userId},
-            });
-            await tx.user.update({where: {id: userId}, data: {familyId: family.id}});
-            return this.findById(family.id);
-        });
-    }
-
-    async join(userId: string, familyId: string): Promise<SafeFamily> {
-        const user = await this.prisma.user.findUnique({where: {id: userId}});
-        if (user?.familyId) throw new ConflictException('You already belong to a family');
-
-        const family = await this.prisma.family.findUnique({where: {id: familyId}});
-        if (!family) throw new NotFoundException('Family not found');
-
-        await this.prisma.user.update({where: {id: userId}, data: {familyId}});
-        return this.findById(familyId);
-    }
-
-    async leave(userId: string): Promise<Confirmation> {
-        const user = await this.prisma.user.findUnique({
-            where: {id: userId},
-            include: {family: true},
+    /**
+     * Creates a new family and initialize it with the current user as CREATOR.
+     * But, the user should not have an existing family.
+     *
+     * @param userId
+     * @param dto
+     */
+    async create(userId: string, dto: CreateFamilyDto): Promise<Family> {
+        // check if user has a family
+        const user = await this.prisma.familyMember.findUnique({
+            where: {userId: userId}
         });
 
-        if (!user?.familyId) throw new ConflictException('You do not belong to any family');
-
-        if (user.family?.creatorId === userId) {
-            throw new ForbiddenException('As creator, delete the family or transfer ownership first');
+        if (user) {
+            throw new ConflictException('You already belong to a family');
         }
 
-        await this.prisma.user.update({where: {id: userId}, data: {familyId: null}});
-        return {message: 'You left the family', status: 'ok'};
+        // create a new family, and put the user as CREATOR
+        return this.prisma.$transaction(async (tx) => {
+            // create the family
+            const family = await tx.family.create({
+                data: {
+                    name: dto.name.trim(),
+                },
+            });
+
+            // put the user as CREATOR in the family
+            await tx.familyMember.create({
+                data: {
+                    familyId: family.id,
+                    userId: userId,
+                    role: "CREATOR"
+                }
+            })
+
+            const result: FamilyWithMembers = await this.findById(family.id);
+
+            return {
+                ...result,
+                createdAt: result.createdAt.toISOString(),
+                updatedAt: result.updatedAt.toISOString(),
+                familyMembers: result.familyMembers.map(({ role, user }) => ({
+                    role,
+                    name: user.name,
+                    image: user.image,
+                })),
+            }
+        });
     }
 
+    async join()
+
+    /**
+     * Find a family by ID.
+     *
+     * @param id
+     */
     async findById(id: string): Promise<FamilyWithMembers> {
-        const family = await this.prisma.family.findUnique({
+        const family: FamilyWithMembers | null = await this.prisma.family.findUnique({
             where: {id},
-            include: {
-                creator: {select: {id: true, name: true, email: true, image: true}},
-                members: {select: {id: true, name: true, email: true, image: true}},
-            },
+            ...familySelect
         });
 
-        if (!family) throw new NotFoundException('Family not found');
+        if (!family) {
+            throw new NotFoundException('Family not found');
+        }
+
         return family;
-    }
-
-    async update(userId: string, familyId: string, dto: UpdateFamilyDto): Promise<SafeFamily> {
-        const family = await this.prisma.family.findUnique({where: {id: familyId}});
-        if (!family) throw new NotFoundException('Family not found');
-        if (family.creatorId !== userId) throw new ForbiddenException('Access denied');
-
-        return this.prisma.family.update({
-            where: {id: familyId},
-            data: {name: dto.name?.trim()},
-        });
-    }
-
-    async delete(userId: string, familyId: string): Promise<Confirmation> {
-        const family = await this.prisma.family.findUnique({where: {id: familyId}});
-        if (!family) throw new NotFoundException('Family not found');
-        if (family.creatorId !== userId) throw new ForbiddenException('Access denied');
-
-        await this.prisma.family.delete({where: {id: familyId}});
-        return {message: 'Family deleted', status: 'ok'};
     }
 }
