@@ -1,18 +1,50 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 
-export async function seedFamilies(
-    prisma: PrismaClient
-) {
-    const dupontFamily = await prisma.family.create({
-        data: {
-            id: 'seed-family-dupont',
-            name: 'Dupont Family'
+export async function seedFamilies(prisma: PrismaClient) {
+    // == Famille Martin (alice = CREATOR, bob = MEMBER)
+    const familyMartin = await prisma.family.upsert({
+        where: { id: 'family_martin' },
+        update: {},
+        create: {
+            id: 'family_martin',
+            name: 'Martin',
+            familyMembers: {
+                create: [
+                    {
+                        userId: 'user_alice',
+                        role: 'CREATOR',
+                    },
+                    {
+                        userId: 'user_bob',
+                        role: 'MEMBER',
+                    },
+                ]
+            }
         },
-    });
+    })
 
-    console.log('   Family seeded');
+    // == Famille Dupont (carol = CREATOR, dave = ADMIN)
+    const familyDupont = await prisma.family.upsert({
+        where: { id: 'family_dupont' },
+        update: {},
+        create: {
+            id: 'family_dupont',
+            name: 'Dupont',
+            familyMembers: {
+                create: [
+                    {
+                        userId: 'user_carol',
+                        role: 'CREATOR',
+                    },
+                    {
+                        userId: 'user_dave',
+                        role: 'ADMIN',
+                    },
+                ]
+            }
+        },
+    })
 
-    return {
-        dupontFamilyId: dupontFamily.id,
-    };
+    console.log(`Families seeded: 2 (${familyMartin.name}, ${familyDupont.name})`)
+    return { familyMartin, familyDupont }
 }

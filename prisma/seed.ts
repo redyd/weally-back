@@ -1,34 +1,30 @@
-import {PrismaClient} from '@prisma/client';
-import * as dotenv from 'dotenv';
-import {cleanup} from "./seeds/cleanuip";
-import {seedUsers} from "./seeds/users.seed";
-import {seedFamilies} from "./seeds/families.seed";
-import {seedMeals} from "./seeds/meals.seed";
-import {seedPlannings} from "./seeds/planning.seed";
+import { PrismaClient } from '@prisma/client'
+import { seedUsers } from './seeds/users.seed'
+import { seedFamilies } from './seeds/families.seed'
+import { seedInvitations } from './seeds/invitations.seed'
+import { seedMeals } from './seeds/meals.seed'
+import {cleanDb} from "./seeds/cleanuip";
 
-dotenv.config();
-
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-    console.log('🌱 Seeding database...\n');
+    console.log('🌱 Starting seed...\n')
 
-    await cleanup(prisma);
+    await cleanDb(prisma)
 
-    const users = await seedUsers(prisma);
+    await seedUsers(prisma)
+    await seedFamilies(prisma)
+    await seedInvitations(prisma)
+    await seedMeals(prisma)
 
-    const {dupontFamilyId} = await seedFamilies(prisma);
-
-    const mealIds = await seedMeals(prisma, dupontFamilyId);
-
-    await seedPlannings(prisma, mealIds);
-
-    console.log('\nComptes de test:');
-    console.log('alice@example.com   / Password123!');
-    console.log('bob@example.com     / Password123!');
-    console.log('charlie@example.com / Password123!');
+    console.log('\n✅ Seed complete!')
 }
 
 main()
-    .catch(console.error)
-    .finally(() => prisma.$disconnect());
+    .catch((e) => {
+        console.error('❌ Seed failed:', e)
+        process.exit(1)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })

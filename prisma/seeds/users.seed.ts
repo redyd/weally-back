@@ -1,39 +1,85 @@
-import { PrismaClient } from '@prisma/client';
-import { auth } from '../../src/lib/auth';
+import { PrismaClient } from '@prisma/client'
+import {auth} from "../../src/lib/auth";
 
 export async function seedUsers(prisma: PrismaClient) {
-    const usersData = [
-        { email: 'alice@example.com', firstName: 'Alice', lastName: 'Dupont', password: 'Password123!' },
-        { email: 'bob@example.com', firstName: 'Bob', lastName: 'Dupont', password: 'Password123!' },
-        { email: 'charlie@example.com', firstName: 'Charlie', lastName: 'Martin', password: 'Password123!' },
-    ];
+    const ctx = await auth.$context
+    const hashedPassword = await ctx.password.hash('Password123!')
 
-    const createdUsers: Record<string, string> = {};
-
-    for (const u of usersData) {
-        const result = await auth.api.signUpEmail({
-            body: {
-                email: u.email,
-                password: u.password,
-                name: `${u.firstName} ${u.lastName}`,
-            },
-        });
-
-        await prisma.user.update({
-            where: { email: u.email },
-            data: {
+    const users = await Promise.all([
+        prisma.user.upsert({
+            where: { email: 'alice@example.com' },
+            update: {},
+            create: {
+                id: 'user_alice',
+                email: 'alice@example.com',
+                name: 'Alice Martin',
                 emailVerified: true,
+                image: 'https://i.pravatar.cc/150?u=alice',
+                accounts: {
+                    create: {
+                        accountId: 'alice@example.com',
+                        providerId: 'credential',
+                        password: hashedPassword,
+                    }
+                }
             },
-        });
+        }),
+        prisma.user.upsert({
+            where: { email: 'bob@example.com' },
+            update: {},
+            create: {
+                id: 'user_bob',
+                email: 'bob@example.com',
+                name: 'Bob Martin',
+                emailVerified: true,
+                image: 'https://i.pravatar.cc/150?u=bob',
+                accounts: {
+                    create: {
+                        accountId: 'bob@example.com',
+                        providerId: 'credential',
+                        password: hashedPassword,
+                    }
+                }
+            },
+        }),
+        prisma.user.upsert({
+            where: { email: 'carol@example.com' },
+            update: {},
+            create: {
+                id: 'user_carol',
+                email: 'carol@example.com',
+                name: 'Carol Dupont',
+                emailVerified: false,
+                image: null,
+                accounts: {
+                    create: {
+                        accountId: 'carol@example.com',
+                        providerId: 'credential',
+                        password: hashedPassword,
+                    }
+                }
+            },
+        }),
+        prisma.user.upsert({
+            where: { email: 'dave@example.com' },
+            update: {},
+            create: {
+                id: 'user_dave',
+                email: 'dave@example.com',
+                name: 'Dave Leroy',
+                emailVerified: true,
+                image: 'https://i.pravatar.cc/150?u=dave',
+                accounts: {
+                    create: {
+                        accountId: 'dave@example.com',
+                        providerId: 'google',
+                        accessToken: 'google_access_token_dave',
+                    }
+                }
+            },
+        }),
+    ])
 
-        createdUsers[u.email] = result.user.id;
-    }
-
-    console.log('   Users seeded');
-
-    return {
-        aliceId: createdUsers['alice@example.com'],
-        bobId: createdUsers['bob@example.com'],
-        charlieId: createdUsers['charlie@example.com'],
-    };
+    console.log(`✅ Users seeded: ${users.length}`)
+    return users
 }
