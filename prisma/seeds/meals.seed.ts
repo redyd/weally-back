@@ -13,7 +13,6 @@ export async function seedMeals(
         {
             id: 'seed-meal-2',
             label: 'Salade César',
-            description: 'Salade romaine croquante, croûtons dorés, parmesan et sauce césar maison'
         },
         {
             id: 'seed-meal-3',
