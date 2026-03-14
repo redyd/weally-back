@@ -24,6 +24,7 @@ export type FamilyWithMeals = {
 export type FamilyRole = 'CREATOR' | 'ADMIN' | 'MEMBER';
 
 export type Member = {
+    id: string;
     name: string;
     image: string | null;
     role: FamilyRole;
@@ -47,7 +48,7 @@ export type Invitation = {
 
 // == USER ==
 
-export type Me = {
+export type User = {
     id: string;
     email: string;
     name: string;

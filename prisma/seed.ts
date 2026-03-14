@@ -17,7 +17,7 @@ async function main() {
 
     const users = await seedUsers(prisma);
 
-    const {dupontFamilyId} = await seedFamilies(prisma, users);
+    const {dupontFamilyId} = await seedFamilies(prisma);
 
     const mealIds = await seedMeals(prisma, dupontFamilyId);
 

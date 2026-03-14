@@ -161,6 +161,7 @@ export class FamilyService {
             updatedAt: family.updatedAt.toISOString(),
             familyMembers: family.familyMembers.map(({ role, user }) => ({
                 role,
+                id: user.id,
                 name: user.name,
                 image: user.image,
             })),

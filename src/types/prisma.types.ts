@@ -1,4 +1,4 @@
-import {Prisma, Meal, MealType, FamilyRole} from '@prisma/client';
+import {Prisma, Meal, MealType} from '@prisma/client';
 
 // IN USAGE
 
@@ -25,6 +25,7 @@ export const familySelect = {
                 role: true,
                 user: {
                     select: {
+                        id: true,
                         name: true,
                         image: true,
                     },
@@ -36,19 +37,44 @@ export const familySelect = {
 
 export type FamilyWithMembers = Prisma.FamilyGetPayload<typeof familySelect>;
 
-export type UserWithFamily = Prisma.UserGetPayload<{
+export const userFamilySelect = {
     select: {
-        id: true;
-        email: true;
-        name: true;
-        emailVerified: true;
-        image: true;
-        familyId: true;
-        createdAt: true;
-        updatedAt: true;
-        family: {}
-    };
-}>;
+        id: true,
+        email: true,
+        name: true,
+        emailVerified: true,
+        image: true,
+        createdAt: true,
+        updatedAt: true,
+        family: {
+            select: {
+                role: true,
+                family: {
+                    select: {
+                        id: true,
+                        name: true,
+                        createdAt: true,
+                        updatedAt: true,
+                        familyMembers: {
+                            select: {
+                                role: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        image: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+} satisfies Prisma.UserDefaultArgs;
+
+export type UserAndFamilyWithMembers = Prisma.UserGetPayload<typeof userFamilySelect>
 
 // OTHER
 
