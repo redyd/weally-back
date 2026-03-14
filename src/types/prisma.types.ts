@@ -1,4 +1,4 @@
-import {Prisma, Meal} from '@prisma/client';
+import {Prisma, Meal, MealType} from '@prisma/client';
 
 // confirmation
 export type Confirmation = {
@@ -95,17 +95,12 @@ export type MealWithFamily = Prisma.MealGetPayload<{
 }>;
 
 // planning
-export type PlannedMeal = Prisma.PlanningGetPayload<{
-    select: {
-        id: true;
-        type: true;
-        date: true;
-        meal: {
-            select: {
-                id: true;
-                label: true;
-                description: true;
-            }
-        }
-    }
-}>
+export type MealsPerDay = {
+    day: Date;
+    meals: {
+        id: string;
+        label: string;
+        description: string | null;
+        type: MealType;
+    }[];
+}

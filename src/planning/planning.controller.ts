@@ -1,7 +1,7 @@
 import {BadRequestException, Controller, Get, Param, ParseIntPipe, Query} from '@nestjs/common';
 import {PlanningService} from './planning.service';
-import {PlannedMeal} from "../types/prisma.types";
 import {PinoLogger} from "nestjs-pino";
+import {MealsPerDay} from "../types/prisma.types";
 
 @Controller('planning')
 export class PlanningController {
@@ -13,7 +13,7 @@ export class PlanningController {
     getPlanningForNextDays(
         @Param('family') familyId: string,
         @Query('days', ParseIntPipe) days: number,
-    ): Promise<PlannedMeal[]> {
+    ): Promise<MealsPerDay[]> {
 
         if (days <= 0) {
             throw new BadRequestException('Days must be greater than 0');
