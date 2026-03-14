@@ -37,6 +37,14 @@ export type Family = {
     familyMembers: Member[];
 };
 
+export type Invitation = {
+    familyId: string;
+    maxUses: number | null;
+    code: string;
+    expiresAt: Date;
+    createdBy: string;
+}
+
 // == USER ==
 
 export type Me = {
