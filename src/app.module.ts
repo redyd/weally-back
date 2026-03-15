@@ -24,6 +24,32 @@ import {LoggerModule} from "nestjs-pino";
       pinoHttp: {
         transport: {
           target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss',
+            ignore: 'pid,hostname',
+            messageFormat: '{msg} [{req.method} {req.url}]',
+          },
+        },
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        redact: {
+          paths: ['req.headers.cookie', 'req.headers.authorization'],
+          censor: '[REDACTED]',
+        },
+        serializers: {
+          req: (req) => ({
+            method: req.method,
+            url: req.url,
+            remoteAddress: req.remoteAddress,
+          }),
+          res: (res) => ({
+            statusCode: res.statusCode,
+          }),
+        },
+        customSuccessMessage: (req, res) =>
+            `${req.method} ${req.url} → ${res.statusCode}`,
+        autoLogging: {
+          ignore: (req) => req.url === '/health',
         },
       },
     }),

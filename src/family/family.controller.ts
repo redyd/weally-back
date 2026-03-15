@@ -13,11 +13,10 @@ import {
 } from './dto/family.dto';
 import {Family} from "../types/api.types";
 import {InviteToFamilyDto} from "./dto/invitation.dt";
-import {PinoLogger} from "nestjs-pino";
 
 @Controller('family')
 export class FamilyController {
-    constructor(private familleService: FamilyService, private readonly logger: PinoLogger) {
+    constructor(private familleService: FamilyService) {
     }
 
     @Post()
@@ -29,7 +28,6 @@ export class FamilyController {
     @Post('invite')
     @HttpCode(HttpStatus.CREATED)
     invite(@Session() session: UserSession, @Body() dto: InviteToFamilyDto) {
-        this.logger.debug('Invite Invite');
         return this.familleService.invite(session.user.id, dto.maxUses);
     }
 
