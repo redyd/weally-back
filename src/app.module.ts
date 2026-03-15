@@ -8,6 +8,7 @@ import { auth } from './lib/auth';
 import { AuthModule, AuthGuard } from '@thallesp/nestjs-better-auth';
 import { PlanningModule } from './planning/planning.module';
 import {LoggerModule} from "nestjs-pino";
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -60,5 +61,6 @@ import {LoggerModule} from "nestjs-pino";
       useClass: AuthGuard,
     },
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
