@@ -1,3 +1,8 @@
+export type Confirmation = {
+    message: string;
+    status: 'ok' | 'error';
+}
+
 // == MEAL ==
 export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
 

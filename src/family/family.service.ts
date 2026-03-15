@@ -6,13 +6,15 @@ import {
 import {PrismaService} from '../prisma/prisma.service';
 import {CreateFamilyDto} from './dto/family.dto';
 import {familySelect, FamilyWithMembers} from "../types/prisma.types";
-import {Family, Invitation} from "../types/api.types";
-import {nanoid} from "nanoid";
+import {Family, Invitation, Confirmation} from "../types/api.types";
+import {customAlphabet} from "nanoid";
 
 @Injectable()
 export class FamilyService {
     constructor(private prisma: PrismaService) {
     }
+
+    #nanoid = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 8)
 
     /**
      * Creates a new family and initialize it with the current user as CREATOR.
@@ -49,7 +51,77 @@ export class FamilyService {
                 }
             })
 
-            return  await this.findById(family.id);
+            return await this.findById(family.id);
+        });
+    }
+
+    /**
+     * Make a user leave the family.
+     * If the user is the creator, then the role is passed to:
+     * - The first admin arrived in the family
+     * - If no admin presents, then pick the first member arrived
+     *
+     * If there is no one left, then everything related to the family are deleted.
+     *
+     * @param userId
+     */
+    async leave(userId: string): Promise<Confirmation> {
+        // check if user belongs to a family
+        const member = await this.prisma.familyMember.findUnique({
+            where: { userId },
+        });
+
+        if (!member) {
+            throw new NotFoundException("You don't belong to any family");
+        }
+
+        const { familyId } = member;
+
+        return this.prisma.$transaction(async (tx) => {
+            // delete member
+            await tx.familyMember.delete({
+                where: { userId },
+            });
+
+            // check for remaining members
+            const remaining = await tx.familyMember.findMany({
+                where: { familyId },
+                orderBy: { createdAt: 'asc' },
+            });
+
+            // if no one left, then delete everything
+            if (remaining.length === 0) {
+                await tx.familyInvitationUse.deleteMany({ where: { invitation: { familyId } } });
+                await tx.familyInvitation.deleteMany({ where: { familyId } });
+                await tx.meal.deleteMany({ where: { familyId } });
+                await tx.family.delete({ where: { id: familyId } });
+
+                const message: Confirmation = {
+                    message: 'Left and deleted family (no one left).',
+                    status: "ok"
+                };
+
+                return message;
+            }
+
+            // Give creator roles
+            if (member.role === 'CREATOR') {
+                const nextCreator =
+                    remaining.find((m) => m.role === 'ADMIN') ??
+                    remaining[0]; // else, first member
+
+                await tx.familyMember.update({
+                    where: { userId: nextCreator.userId },
+                    data: { role: 'CREATOR' },
+                });
+            }
+
+            const message: Confirmation = {
+                message: 'Left the family',
+                status: "ok"
+            };
+
+            return message;
         });
     }
 
@@ -70,7 +142,7 @@ export class FamilyService {
 
         // get invitation & usage count
         const invitation = await this.prisma.familyInvitation.findUnique({
-            where: { code },
+            where: {code},
             include: {
                 _count: {
                     select: {
@@ -159,7 +231,7 @@ export class FamilyService {
             ...family,
             createdAt: family.createdAt.toISOString(),
             updatedAt: family.updatedAt.toISOString(),
-            familyMembers: family.familyMembers.map(({ role, user }) => ({
+            familyMembers: family.familyMembers.map(({role, user}) => ({
                 role,
                 id: user.id,
                 name: user.name,
@@ -173,12 +245,13 @@ export class FamilyService {
         let exists: boolean
 
         do {
-            code = nanoid(8).toUpperCase()
+            code = this.#nanoid()
             exists = !!(await this.prisma.familyInvitation.findUnique({
-                where: { code },
+                where: {code},
             }))
         } while (exists)
 
         return code
     }
+
 }

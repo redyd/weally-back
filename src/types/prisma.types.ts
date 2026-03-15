@@ -79,10 +79,7 @@ export type UserAndFamilyWithMembers = Prisma.UserGetPayload<typeof userFamilySe
 // OTHER
 
 // confirmation
-export type Confirmation = {
-    message: string;
-    status: 'ok' | 'error';
-}
+
 
 // ─── Family ───────────────────────────────────────────────────────────────────
 

@@ -94,7 +94,8 @@ model FamilyMember {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 
-  role FamilyRole @default(MEMBER)
+  role      FamilyRole @default(MEMBER)
+  createdAt DateTime   @default(now())
 
   @@id([familyId, userId])
   @@map("families_members")
