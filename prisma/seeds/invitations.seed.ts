@@ -43,14 +43,12 @@ export async function seedInvitations(prisma: PrismaClient) {
     })
 
     // == Usage : bob a utilisé le code DUPONT01 pour rejoindre (simulé)
-    const invitationUse = await prisma.familyInvitationUse.upsert({
-        where: { code_usedBy: { code: 'DUPONT01', usedBy: 'user_bob' } },
-        update: {},
-        create: {
+    const invitationUse = await prisma.familyInvitationUse.create({
+        data: {
             code: 'DUPONT01',
             usedBy: 'user_bob',
         },
-    })
+    });
 
     console.log(`Invitations seeded: 3 (actif: ${activeInvitation.code}, expiré: ${expiredInvitation.code}, illimité: ${unlimitedInvitation.code})`)
     console.log(`Invitation uses seeded: 1 (${invitationUse.id})`)

@@ -157,8 +157,12 @@ export class FamilyService {
             throw new NotFoundException('This code is invalid');
         }
 
-        if (invitation.expiresAt > new Date() || (invitation.maxUses && invitation.maxUses >= invitation._count.uses)) {
+        if (invitation.expiresAt < new Date()) {
             throw new GoneException('This code is expired');
+        }
+
+        if (invitation.maxUses && invitation._count.uses >= invitation.maxUses) {
+            throw new GoneException('This code has reached its limit');
         }
 
         // create member & add invitation usage

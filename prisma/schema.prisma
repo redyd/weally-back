@@ -127,7 +127,6 @@ model FamilyInvitationUse {
   usedBy String
   user   User   @relation("invitationUses", fields: [usedBy], references: [id])
 
-  @@unique([code, usedBy])
   @@map("family_invitation_uses")
 }
 
