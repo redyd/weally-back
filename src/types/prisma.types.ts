@@ -1,75 +1,87 @@
-import {Prisma, Meal} from '@prisma/client';
+import {Prisma, Meal, MealType} from '@prisma/client';
 
-// confirmation
-export type Confirmation = {
-    message: string;
-    status: 'ok' | 'error';
+// IN USAGE
+
+// == PLANNING & MEAL RELATED ==
+export type MealsPerDay = {
+    day: Date;
+    meals: {
+        id: string;
+        label: string;
+        description: string | null;
+        type: MealType;
+    }[];
 }
 
-// ─── User ─────────────────────────────────────────────────────────────────────
-
-export type SafeUser = Prisma.UserGetPayload<{
+// == FAMILY ==
+export const familySelect = {
     select: {
-        id: true;
-        email: true;
-        name: true;
-        emailVerified: true;
-        image: true;
-        familyId: true;
-        createdAt: true;
-        updatedAt: true;
-    };
-}>;
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        familyMembers: {
+            select: {
+                role: true,
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        image: true,
+                    },
+                },
+            },
+        },
+    },
+} satisfies Prisma.FamilyDefaultArgs;
 
-export type UserWithFamily = Prisma.UserGetPayload<{
+export type FamilyWithMembers = Prisma.FamilyGetPayload<typeof familySelect>;
+
+export const userFamilySelect = {
     select: {
-        id: true;
-        email: true;
-        name: true;
-        emailVerified: true;
-        image: true;
-        familyId: true;
-        createdAt: true;
-        updatedAt: true;
+        id: true,
+        email: true,
+        name: true,
+        emailVerified: true,
+        image: true,
+        createdAt: true,
+        updatedAt: true,
         family: {
             select: {
-                id: true;
-                name: true;
-                createdAt: true;
-                updatedAt: true;
-                creatorId: true;
+                role: true,
+                family: {
+                    select: {
+                        id: true,
+                        name: true,
+                        createdAt: true,
+                        updatedAt: true,
+                        familyMembers: {
+                            select: {
+                                role: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        image: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        };
-    };
-}>;
+        }
+    }
+} satisfies Prisma.UserDefaultArgs;
+
+export type UserAndFamilyWithMembers = Prisma.UserGetPayload<typeof userFamilySelect>
+
+// OTHER
+
+// confirmation
+
 
 // ─── Family ───────────────────────────────────────────────────────────────────
-
-export type SafeFamily = Prisma.FamilyGetPayload<{
-    select: {
-        id: true;
-        name: true;
-        createdAt: true;
-        updatedAt: true;
-        creatorId: true;
-    };
-}>;
-
-export type FamilyWithMembers = Prisma.FamilyGetPayload<{
-    select: {
-        id: true;
-        name: true;
-        createdAt: true;
-        updatedAt: true;
-        creatorId: true;
-        creator: {
-            select: { id: true; name: true; email: true, image: true };
-        };
-        members: {
-            select: { id: true; name: true; email: true; image: true };
-        };
-    };
-}>;
 
 export type FamilyWithMeals = Prisma.FamilyGetPayload<{
     select: {
@@ -85,11 +97,3 @@ export type FamilyWithMeals = Prisma.FamilyGetPayload<{
 // ─── Meal ─────────────────────────────────────────────────────────────────────
 
 export type SafeMeal = Meal;
-
-export type MealWithFamily = Prisma.MealGetPayload<{
-    include: {
-        family: {
-            select: { id: true; name: true };
-        };
-    };
-}>;

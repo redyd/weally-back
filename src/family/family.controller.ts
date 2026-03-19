@@ -1,64 +1,45 @@
 import {
     Controller,
     Post,
-    Get,
-    Patch,
-    Delete,
     Body,
-    Param,
     HttpCode,
-    HttpStatus,
+    HttpStatus, Param,
 } from '@nestjs/common';
 import {Session} from '@thallesp/nestjs-better-auth';
 import type {UserSession} from '@thallesp/nestjs-better-auth';
 import {FamilyService} from './family.service';
 import {
     CreateFamilyDto,
-    UpdateFamilyDto,
-    JoinFamilyDto,
 } from './dto/family.dto';
-import {Confirmation, FamilyWithMembers, SafeFamily} from "../types/prisma.types";
+import {Confirmation, Family} from "../types/api.types";
+import {InviteToFamilyDto} from "./dto/invitation.dt";
 
 @Controller('family')
 export class FamilyController {
-    constructor(private familleService: FamilyService) {
+    constructor(private familyService: FamilyService) {
     }
 
-    @Post()
+    @Post('create')
     @HttpCode(HttpStatus.CREATED)
-    create(@Session() session: UserSession, @Body() dto: CreateFamilyDto): Promise<SafeFamily> {
-        return this.familleService.create(session.user.id, dto);
-    }
-
-    @Post('join')
-    @HttpCode(HttpStatus.OK)
-    join(@Session() session: UserSession, @Body() dto: JoinFamilyDto): Promise<SafeFamily> {
-        return this.familleService.join(session.user.id, dto.familyId);
+    create(@Session() session: UserSession, @Body() dto: CreateFamilyDto): Promise<Family> {
+        return this.familyService.create(session.user.id, dto);
     }
 
     @Post('leave')
     @HttpCode(HttpStatus.OK)
     leave(@Session() session: UserSession): Promise<Confirmation> {
-        return this.familleService.leave(session.user.id);
+        return this.familyService.leave(session.user.id);
     }
 
-    @Get(':id')
-    findOne(@Param('id') id: string): Promise<FamilyWithMembers> {
-        return this.familleService.findById(id);
+    @Post('invite')
+    @HttpCode(HttpStatus.CREATED)
+    invite(@Session() session: UserSession, @Body() dto: InviteToFamilyDto) {
+        return this.familyService.invite(session.user.id, dto.maxUses);
     }
 
-    @Patch(':id')
-    update(
-        @Session() session: UserSession,
-        @Param('id') familleId: string,
-        @Body() dto: UpdateFamilyDto,
-    ): Promise<SafeFamily> {
-        return this.familleService.update(session.user.id, familleId, dto);
-    }
-
-    @Delete(':id')
+    @Post('join/:code')
     @HttpCode(HttpStatus.OK)
-    delete(@Session() session: UserSession, @Param('id') familleId: string): Promise<Confirmation> {
-        return this.familleService.delete(session.user.id, familleId);
+    join(@Session() session: UserSession, @Param('code') code: string): Promise<Family> {
+        return this.familyService.join(code, session.user.id);
     }
 }

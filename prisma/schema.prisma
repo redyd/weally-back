@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Auth (modèles BetterAuth) ────────────────────────────────────────────────
+// == AUTH & USER ==
 
 model User {
   id            String   @id @default(cuid())
@@ -18,12 +18,12 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  familyId        String?
-  family          Family?  @relation("FamilyMembers", fields: [familyId], references: [id], onDelete: SetNull)
-  familiesCreated Family[] @relation("FamilyCreator")
-
   sessions Session[]
   accounts Account[]
+
+  family             FamilyMember?
+  invitationsCreated FamilyInvitation[]    @relation("creator")
+  invitationUses     FamilyInvitationUse[] @relation("invitationUses")
 
   @@map("users")
 }
@@ -72,7 +72,7 @@ model Verification {
   @@map("verifications")
 }
 
-// ─── Métier ───────────────────────────────────────────────────────────────────
+// == FAMIlY ==
 
 model Family {
   id        String   @id @default(cuid())
@@ -80,19 +80,91 @@ model Family {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  creatorId String
-  creator   User   @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Restrict)
-  members   User[] @relation("FamilyMembers")
-  meals     Meal[]
+  meals             Meal[]
+  familyMembers     FamilyMember[]
+  familyInvitations FamilyInvitation[]
 
   @@map("families")
 }
 
+model FamilyMember {
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id])
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  role      FamilyRole @default(MEMBER)
+  createdAt DateTime   @default(now())
+
+  @@id([familyId, userId])
+  @@map("families_members")
+}
+
+model FamilyInvitation {
+  code      String   @id
+  expiresAt DateTime
+  maxUses   Int?
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id])
+
+  createdBy   String
+  userCreator User   @relation("creator", fields: [createdBy], references: [id])
+
+  uses FamilyInvitationUse[]
+
+  @@map("families_invitations")
+}
+
+model FamilyInvitationUse {
+  id     String   @id @default(cuid())
+  usedAt DateTime @default(now())
+
+  code       String
+  invitation FamilyInvitation @relation(fields: [code], references: [code])
+
+  usedBy String
+  user   User   @relation("invitationUses", fields: [usedBy], references: [id])
+
+  @@map("family_invitation_uses")
+}
+
+enum FamilyRole {
+  CREATOR
+  ADMIN
+  MEMBER
+}
+
+// == PLANNING & MEALS ==
+
+model Planning {
+  id   String   @id @default(cuid())
+  type MealType
+  date DateTime
+
+  mealId String
+  meal   Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@map("plannings")
+}
+
 model Meal {
-  id       String @id @default(cuid())
-  label    String
+  id          String  @id @default(cuid())
+  label       String
+  description String?
+
   familyId String
   family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
+  plannings Planning[]
+
   @@map("meals")
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
 }

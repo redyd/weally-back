@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "families_members" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
